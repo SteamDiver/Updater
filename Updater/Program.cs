@@ -41,10 +41,10 @@ namespace Updater
                 {
                     using (ZipArchive archive = ZipFile.OpenRead(@"tmp\update.zip"))
                     {
-                        archive.ExtractToDirectory(Directory.GetCurrentDirectory());
-                        DeleteFromFile(@"_DELETE_.txt");
+                        //archive.ExtractToDirectory(Directory.GetCurrentDirectory());
+                        ExtractToDirectory(archive, Directory.GetCurrentDirectory(), true);
                     }
-
+                    DeleteFromFile("_DELETE_.txt");
 
                     directoryinfo.Delete(true);
                     Console.WriteLine("Success");
@@ -70,6 +70,24 @@ namespace Updater
             }
             
         }
-        
+        static void ExtractToDirectory(ZipArchive archive, string destinationDirectoryName, bool overwrite)
+        {
+            if (!overwrite)
+            {
+                archive.ExtractToDirectory(destinationDirectoryName);
+                return;
+            }
+            foreach (ZipArchiveEntry file in archive.Entries)
+            {
+                string completeFileName = Path.Combine(destinationDirectoryName, file.FullName);
+                string directory = Path.GetDirectoryName(completeFileName);
+
+                if (!Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
+
+                if (file.Name != "")
+                    file.ExtractToFile(completeFileName, true);
+            }
+        }
     }
 }
